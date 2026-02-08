@@ -1,38 +1,31 @@
-# Base image: Use Python 3.9 slim (lightweight version of Python)
-FROM python:3.9-slim
+# Use a stable, specific Debian-based Python image
+FROM python:3.9-slim-bookworm
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the Streamlit app and all necessary files to the container
+# Copy weights and app
 COPY ./weights/ /app/.cxas/weights
 COPY interactive_cxas_app.py /app/
 
-# Set environment variables
 ENV CXAS_PATH=/app/
 
-# Install system-level dependencies (libGL for OpenCV and other dependencies)
+# Clean apt-get list and install only what is strictly necessary
+# Removed libgl1-mesa-glx as opencv-python-headless doesn't need it
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    build-essential \
-    libjpeg-dev \
-    zlib1g-dev \
-    libpng-dev \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    ffmpeg \
-    libsm6 \
-    libxext6 && \
+        build-essential \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        ffmpeg && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-RUN pip install --upgrade pip && \
-    pip install setuptools wheel && \
-    pip install torch torchvision torchaudio && \
-    pip install cxas==0.0.15 streamlit opencv-python-headless pillow numpy
+# Upgrade pip and install Python packages
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir cxas==0.0.15 streamlit opencv-python-headless pillow numpy
 
-# Expose the default port for Streamlit (8501)
 EXPOSE 8501
 
-# Command to run the Streamlit app on container startup
 CMD ["streamlit", "run", "interactive_cxas_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
