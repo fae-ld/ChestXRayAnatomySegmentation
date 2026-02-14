@@ -51,7 +51,7 @@ def process_and_cleanup(output_folder):
             
             # Save as output_folder/JPCLN014_cxas_pred.png
             ext = os.path.splitext(left_path[0])[1]
-            final_filename = f"{folder_name}_cxas_pred{ext}"
+            final_filename = f"{folder_name}{ext}"
             final_path = os.path.join(output_folder, final_filename)
             
             cv2.imwrite(final_path, merged)
